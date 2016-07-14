@@ -85,7 +85,3 @@ end
 
 game = MineSweeper.new
 game.run
-game.save
-puts "here"
-sleep 2
-game.load

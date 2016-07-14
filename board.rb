@@ -6,7 +6,7 @@ class Board
 
   attr_reader :grid
 
-  def initialize(num_bombs = 5)
+  def initialize(num_bombs = 20)
     @num_bombs = num_bombs
     @grid = Array.new(10) {Array.new(10){Tile.new}}
     bomb_populate
@@ -102,7 +102,7 @@ class Board
       print "#{idx} "
       row.each do |space|
         if space.flagged == true
-          print "|" + " F ".colorize(:red)
+          print "|" + " F ".colorize(:color => :red, :background => :white)
         elsif space.visible == false
           print "|" + "   ".colorize(:background => :white)
         elsif space.value == 0
