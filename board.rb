@@ -1,11 +1,12 @@
 require_relative 'tile.rb'
+require 'colorize'
 require 'byebug'
 
 class Board
 
   attr_reader :grid
 
-  def initialize(num_bombs = 10)
+  def initialize(num_bombs = 5)
     @num_bombs = num_bombs
     @grid = Array.new(10) {Array.new(10){Tile.new}}
     bomb_populate
@@ -101,13 +102,15 @@ class Board
       print "#{idx} "
       row.each do |space|
         if space.flagged == true
-          print "| F "
+          print "|" + " F ".colorize(:red)
         elsif space.visible == false
-          print "| * "
+          print "|" + "   ".colorize(:background => :white)
         elsif space.value == 0
           print "|   "
+        elsif space.value == "B"
+          print "|" + " #{space.value} ".colorize(:color => :black, :background => :red)
         else
-          print "| #{space.value} "
+          print "|" + " #{space.value} ".colorize(:green)
         end
       end
       puts '|'
