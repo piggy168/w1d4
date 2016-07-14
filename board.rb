@@ -5,9 +5,9 @@ class Board
 
   attr_reader :grid
 
-  def initialize(num_bombs = 1)
+  def initialize(num_bombs = 10)
     @num_bombs = num_bombs
-    @grid = Array.new(3) {Array.new(3){Tile.new}}
+    @grid = Array.new(10) {Array.new(10){Tile.new}}
     bomb_populate
     set_values
   end
@@ -119,10 +119,31 @@ class Board
   #game play
   def take(action, pos)
     tile = @grid[pos[0]][pos[1]]
-    action == "r" ? tile.reveal : tile.flag
+    action == "r" ? reveal(tile, pos) : tile.flag
+  end
+
+  def reveal(tile, pos)
+    tile.value == 0 ? reveal_empty(pos) : tile.reveal
   end
 
 
+  #reaveal empty spaces at once
+  def reveal_empty(pos)
+    adjacent_tiles(pos).each do |tile|
+      pos = get_tile_pos(tile)
+      if tile.value == 0 && tile.visible == false
+        tile.reveal
+        reveal_empty(pos)
+      else
+        tile.reveal
+      end
+    end
+  end
 
+  def get_tile_pos(tile)
+    pos = []
+    @grid.each_index{|i| j = @grid[i].index(tile); pos = [i, j] if j}
+    pos
+  end
 
 end
