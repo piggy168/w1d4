@@ -1,6 +1,7 @@
 require_relative 'board.rb'
 require_relative 'tile.rb'
 require_relative 'player.rb'
+require_relative 'render.rb'
 
 require 'yaml'
 require 'byebug'
@@ -10,30 +11,43 @@ class MineSweeper
   def initialize
     @board = Board.new
     @player = Player.new
+    @render = Render.new(@board)
   end
 
   #game flow
   def run
     take_turn until game_over
-    @board.render
+    @render.draw
     won? ? (puts "You Win!") : (puts "You Suck!")
   end
 
   def take_turn
-    @board.render
-    pos = get_guess
-    action = get_action
-    @board.take(action, pos)
+    @render.draw
+    get_input
   end
 
-  def get_guess
-    guess = @player.get_guess
+  def get_input
+    input = @player.get_input
+    case input
+    when "up"
+      @board.change_pos("up")
+    when "down"
+      @board.change_pos("down")
+    when "right"
+      @board.change_pos("right")
+    when "left"
+      @board.change_pos("left")
+    when "enter"
+      @board.reveal
+    when "flag"
+      @board.flag
+    when "save"
+      save
+    when "load"
+      load
+    end
   end
 
-  def get_action
-    action = @player.get_action
-    check(action)
-  end
   #victory conditions
   def game_over
     return true if won? || lost?
@@ -66,20 +80,9 @@ class MineSweeper
 
   def load
     @board = YAML.load(File.read('save.yml'))
+    @render = Render.new(@board)
     run
   end
-
-  def check(input)
-    case input
-    when "save"
-      save
-    when "load"
-      load
-    else
-      return input
-    end
-  end
-
 
 end
 

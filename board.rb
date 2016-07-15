@@ -4,9 +4,10 @@ require 'byebug'
 
 class Board
 
-  attr_reader :grid
+  attr_reader :grid, :current_pos
 
-  def initialize(num_bombs = 20)
+  def initialize(num_bombs = 10)
+    @current_pos = [0,0]
     @num_bombs = num_bombs
     @grid = Array.new(10) {Array.new(10){Tile.new}}
     bomb_populate
@@ -27,11 +28,11 @@ class Board
        pos = get_pos
        valid = valid?(pos)
      end
-     @grid[pos[0]][pos[1]].value = "B"
+     self[*pos].value = "B"
   end
 
   def valid?(pos)
-    tile = @grid[pos[0]][pos[1]]
+    tile = self[*pos]
     tile.value == nil
   end
 
@@ -67,7 +68,7 @@ class Board
     pos = get_starting_and_ending(pos)
     (pos[0][0]..pos[1][0]).each do |y|
       (pos[0][1]..pos[1][1]).each do |x|
-        adj << @grid[y][x]
+        adj << self[y, x]
       end
     end
     adj
@@ -91,44 +92,41 @@ class Board
   end
 
   #render Board
-  def render
-    system("clear")
-    print "  "
-    (0...@grid.length).each {|i| print "  #{i} "}
-    puts ""
-    @grid.each_with_index do |row, idx|
-      print "  "
-      puts "----" * @grid.length
-      print "#{idx} "
-      row.each do |space|
-        if space.flagged == true
-          print "|" + " F ".colorize(:color => :red, :background => :white)
-        elsif space.visible == false
-          print "|" + "   ".colorize(:background => :white)
-        elsif space.value == 0
-          print "|   "
-        elsif space.value == "B"
-          print "|" + " #{space.value} ".colorize(:color => :black, :background => :red)
-        else
-          print "|" + " #{space.value} ".colorize(:green)
-        end
-      end
-      puts '|'
-    end
-    print "  "
-    puts "----" * @grid.length
-  end
+
 
   #game play
-  def take(action, pos)
-    tile = @grid[pos[0]][pos[1]]
+  def take(action)
+    tile = self[pos]
     action == "r" ? reveal(tile, pos) : tile.flag
   end
 
-  def reveal(tile, pos)
-    tile.value == 0 ? reveal_empty(pos) : tile.reveal
+  def reveal
+    tile = self[*@current_pos]
+    tile.value == 0 ? reveal_empty(@current_pos) : tile.reveal
   end
 
+  def flag
+    tile = self[*@current_pos]
+    tile.flag
+  end
+
+  def change_pos(direction)
+    case direction
+    when "up"
+      new_y = [@current_pos[0] - 1, 0].max
+      new_x = @current_pos[1]
+    when "down"
+      new_y = [@current_pos[0] + 1, @grid.length - 1].min
+      new_x = @current_pos[1]
+    when "right"
+      new_y = @current_pos[0]
+      new_x = [@current_pos[1] + 1, @grid.length - 1].min
+    when "left"
+      new_y = @current_pos[0]
+      new_x = [@current_pos[1] - 1, 0].max
+    end
+    @current_pos = [new_y, new_x]
+  end
 
   #reaveal empty spaces at once
   def reveal_empty(pos)
@@ -147,6 +145,11 @@ class Board
     pos = []
     @grid.each_index{|i| j = @grid[i].index(tile); pos = [i, j] if j}
     pos
+  end
+
+  #helper
+  def [] (y, x)
+    @grid[y][x]
   end
 
 end
